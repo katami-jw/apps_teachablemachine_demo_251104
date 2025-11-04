@@ -3,7 +3,7 @@ const webcamHeightS = 120;
 const webcamWidthM = 170;
 const webcamHeightM = 170
 const webcamWidthL = 200;
-const webcamHeightL = 200;
+const webcamHeightL = 200;;
 const webcamWidthXL = 400;
 const webcamHeightXL = 400;
 
@@ -29,14 +29,12 @@ async function onChangeCameraRec() {
             webcam.play();
             stopLoopFlag = false;
             window.requestAnimationFrame(loop);
-            document.getElementById("webcam-container").style.filter = "grayscale(0%)";
         });
 
     } else {
         setChangeCameraRecLabel(false);
         await pauseVideo();
         await webcam.stop();
-        document.getElementById("webcam-container").style.filter = "grayscale(100%)";
     }
 }
 
@@ -76,18 +74,6 @@ function setWebcamScreenSize() {
     }
 }
 
-function hideProgressBar() {
-    const hideProgressBarValue = getRadioboxValue("hide-progressbar");
-    switch (hideProgressBarValue) {
-        case "hide-progressbar-true":
-            labelContainer.hidden = true;
-            break;
-        case "hide-progressbar-false":
-            labelContainer.hidden = false;
-            break;
-    }
-}
-
 // 初回のみ実行される。
 async function defaultModelLoad() {
     //model = await tmImage.loadFromFiles(modelObj, weightsObj, metadataObj);
@@ -108,6 +94,7 @@ async function defaultModelLoad() {
 
     labelContainer = document.getElementById("label-container");
     for (let i = 0; i < maxPredictions; i++) { // and class labels
+        labelContainer.appendChild(document.createElement("div"));
         $('<audio id="sound_' + i + '" preload="auto"><source src="' + audioData[i] + '" type="audio/mp3"></audio>').appendTo('#audio-list')
         document.getElementById('sound_' + i).load();
     }
@@ -126,16 +113,8 @@ async function setupCam(width, height) {
     webcam = new tmImage.Webcam(width, height, flip); // width, height, flip
     await webcam.setup(); // request access to the webcam
 
-    try {
-        const childCanvas = document.getElementById("webcam-container").getElementsByTagName('canvas');
-        childCanvas[0].remove();
-    } catch (e) {
-        console.warn("初回起動につきWebcam取得失敗:" + e);
-    }
-
+    document.getElementById("webcam-container").innerHTML = "";
     document.getElementById("webcam-container").appendChild(webcam.canvas);
-    document.getElementById("label-container").style.top = `${height}px`;
-
     await webcam.play();
     window.requestAnimationFrame(loop);
 
@@ -145,10 +124,11 @@ setWebcamScreenSize();
 Promise.all([setupCam(webcamWidth, webcamHeight)]).then(() => {
     document.getElementById("change-camera-rec").checked = true;
     setChangeCameraRecLabel(true);
-    document.getElementById('preloader').remove();
 });
 
 async function startPredict() {
+
+    setSettingButtonTextState(true);
 
     if (!document.getElementById("change-camera-rec").checked) {
         return;
@@ -198,47 +178,23 @@ async function predict() {
     const prediction = await model.predict(webcam.canvas);
     let answer = 0;
 
-    let maxLengthPredictionLabel = 0;
     for (let i = 0; i < maxPredictions; i++) {
-        const predictionLabel = prediction[i].className;
-        if (maxLengthPredictionLabel < predictionLabel.length) {
-            maxLengthPredictionLabel = predictionLabel.length;
-        }
-    }
-
-    let addProgressHTMLStr = "";
-    for (let i = 0; i < maxPredictions; i++) {
-        const predictNum = (prediction[i].probability.toFixed(2) * 100).toFixed(0);
-        const predictionLabel = prediction[i].className;
-        // prediction[i].className.length < 9 ? prediction[i].className : prediction[i].className.substr( 0, 8 ) + '...';
-
-        addProgressHTMLStr += `
-                <div class="row gx-0 gy-0 pb-2">
-                    <div class="col-5 ps-1 text-start text-white text-nowrap text-truncate text-justify flex-fill" style="max-width: 7em !important;width: ${maxLengthPredictionLabel}em">
-                        <span id="prediction-result-${i}">${predictionLabel}</span>
-                    </div>
-                    <div class="col-7 cssProgress fs-4 flex-fill">
-                        <div class="progress3" style="width:100%">
-                            <div class="cssProgress-bar cssProgress-primary" data-percent="${predictNum}" style="transition: none 0s ease 0s; width: ${predictNum}%;position: relative;">
-                                <span class="cssProgress-label-nohidden pe-2 ps-1" style="color: #FFFFFF;position: absolute;text-align: right;">${predictNum}%</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-        `
+        const classPrediction =
+            prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+        labelContainer.childNodes[i].innerHTML = '<h3 id="prediction-result-' + i + '">' + classPrediction + '</h3>';
 
         if (prediction[answer].probability < prediction[i].probability) {
             answer = i;
         }
     }
 
-
-    labelContainer.innerHTML = `
-            <div class="container-fluid pt-2">
-                ${addProgressHTMLStr}
-            </div>
-        `
-
+    for(let i = 0; i < maxPredictions; i++) {
+        if(i != answer){
+            document.getElementById('prediction-result-' + i).setAttribute('class', 'text-secondary')
+            continue;
+        }
+        document.getElementById('prediction-result-' + answer).setAttribute('class', 'text-primary')
+    }
 
     // note: 直後に切り替わらないようにする
     if (tmpAnswer !== answer) {
@@ -267,6 +223,8 @@ async function predict() {
 }
 
 let bufModel;
+let bufPictureDatas;
+let bufAudioDatas;
 function handleFile(f) {
     let modelBlob;
     let metadataBlob;
@@ -296,8 +254,8 @@ function handleFile(f) {
                     maxPredictions = bufModel.getTotalClasses();
                     classes = bufModel.getClassLabels();
 
-
-                    initResource();
+                    bufPictureDatas = new Array(maxPredictions);
+                    bufAudioDatas = new Array(maxPredictions);
 
                     let manyForm = document.getElementById("many-form");
                     manyForm.innerHTML = ""
@@ -326,11 +284,11 @@ function handleFile(f) {
                             const reader = new FileReader();
 
                             reader.onload = (e) => {
-                                pictureData[i] = e.target.result;
-                                setFirstPicture();
+                                bufPictureDatas[i] = e.target.result;
                             };
                             reader.readAsDataURL(file);
 
+                            setSettingButtonState(false);
                             modelChangeFlag = true;
                         })
 
@@ -348,12 +306,11 @@ function handleFile(f) {
                             const reader = new FileReader();
 
                             reader.onload = (e) => {
-                                audioData[i] = e.target.result;
-                                const sound_src = document.getElementById('sound_src_' + i);
-                                sound_src.src = audioData[i];
-                                document.getElementById('sound_' + i).load();
+                                bufAudioDatas[i] = e.target.result;
                             };
                             reader.readAsDataURL(file);
+
+                            setSettingButtonState(false);
                             modelChangeFlag = true;
                         })
                     }
@@ -376,6 +333,8 @@ $("#model_input").on("change", async function (evt) {
     }
 
     handleFile(files[0]);
+
+    setSettingButtonState(false);
     modelChangeFlag = true;
 })
 
@@ -383,63 +342,90 @@ let webcamScreensizeSetFlag = false;
 let radio_btns = document.querySelectorAll(`input[type='radio'][name='webcam-screensize']`);
 for (let target of radio_btns) {
     target.addEventListener(`change`, () => {
+        setSettingButtonState(false);
         webcamScreensizeSetFlag = true;
+    });
+}
 
-        if (webcamScreensizeSetFlag) {
-            webcamScreensizeChangeFlag = true;
-            webcamScreensizeSetFlag = false;
-            setWebcamScreenSize();
+// Load the image model and setup the webcam
+async function setSetting() {
+    if (modelChangeFlag) {
+        let audio_list = document.getElementById("audio-list");
+        audio_list.innerHTML = "";
+
+        let labelContainer = document.getElementById("label-container");
+        labelContainer.innerHTML = "";
+
+        pictureData = new Array(maxPredictions);
+        audioData = new Array(maxPredictions);
+
+        labelContainer = document.getElementById("label-container");
+        for (let i = 0; i < maxPredictions; i++) { // and class labels
+
+            if (bufPictureDatas[i] === undefined) {
+                pictureData[i] = "./assets/画像未設定.png";
+            } else {
+                pictureData[i] = bufPictureDatas[i];
+            }
+
+            if (bufAudioDatas[i] === undefined) {
+                audioData[i] = "./assets/無音.mp3";
+            } else {
+                audioData[i] = bufAudioDatas[i];
+            }
+
+            labelContainer.appendChild(document.createElement("div"));
+            $('<audio id="sound_' + i + '" preload="auto"><source src="' + audioData[i] + '" type="audio/mp3"></audio>').appendTo('#audio-list')
+            document.getElementById('sound_' + i).load();
         }
-    });
-}
-
-
-let radio_progressbar_hide_btns = document.querySelectorAll(`input[type='radio'][name='hide-progressbar']`);
-for (let target of radio_progressbar_hide_btns) {
-    target.addEventListener(`change`, () => {
-        hideProgressBar();
-    });
-}
-
-
-function setFirstPicture() {
-    let firstPicture = 0
-    if (gAnswer < maxPredictions) {
-        firstPicture = gAnswer;
+        model = bufModel
+        modelChangeFlag = false;
     }
-    $('.hero-background').css({
-        backgroundImage: 'url("' + pictureData[firstPicture] + '")'
-    });
-}
 
-function initResource() {
-    let audio_list = document.getElementById("audio-list");
-    audio_list.innerHTML = "";
-
-    labelContainer = document.getElementById("label-container");
-    labelContainer.innerHTML = "";
-
-    pictureData = new Array(maxPredictions);
-    audioData = new Array(maxPredictions);
-
-    labelContainer = document.getElementById("label-container");
-    for (let i = 0; i < maxPredictions; i++) { // and class labels
-        pictureData[i] = "./assets/画像未設定.png";
-        audioData[i] = "./assets/無音.mp3";
-
-        $('<audio id="sound_' + i + '" preload="auto"><source id="sound_src_' + i + '" src="' + audioData[i] + '" type="audio/mp3"></audio>').appendTo('#audio-list')
-        document.getElementById('sound_' + i).load();
+    if (webcamScreensizeSetFlag) {
+        webcamScreensizeChangeFlag = true;
+        webcamScreensizeSetFlag = false;
+        setWebcamScreenSize();
     }
-    model = bufModel
 
-    setFirstPicture();
+    setSettingButtonState(true);
+
+    $(function () {
+        let firstPicture = 0
+        if (gAnswer < maxPredictions) {
+            firstPicture = gAnswer;
+        }
+        $('.hero-background').css({
+            backgroundImage: 'url("' + pictureData[firstPicture] + '")'
+        });
+    });
+
+    setSettingButtonTextState(false);
 }
 
-function setChangeCameraRecLabel(onFlag) {
-    let changeCameraRecLabel = document.getElementById("change-camera-rec-label");
-    if (onFlag) {
+function setSettingButtonState(disable){
+    let settingButton = document.getElementById("setting-button");
+    settingButton.disabled = disable;
+    
+    if(settingButton.disabled){
+        settingButton.classList.remove("btn-primary");
+        settingButton.classList.add("btn-secondary");
+    }else{
+        settingButton.classList.remove("btn-secondary");
+        settingButton.classList.add("btn-primary");
+    }
+}
+
+function setSettingButtonTextState(hidden){
+    let settingButtonText = document.getElementById("setting-button-text");
+    settingButtonText.hidden = hidden;
+}
+
+function setChangeCameraRecLabel(onFlag){
+    let changeCameraRecLabel= document.getElementById("change-camera-rec-label");
+    if(onFlag){
         changeCameraRecLabel.innerText = "オン";
-    } else {
+    }else{
         changeCameraRecLabel.innerText = "オフ";
     }
 }

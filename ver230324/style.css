@@ -9,12 +9,6 @@
     margin: 0 calc(50% - 50vw);
 }
 
-.absolute2 {
-    position: absolute;
-    left: 0px;
-    margin: 0 calc(50% - 50vw);
-}
-
 .no-gutters {
     margin-right: 0px;
     margin-left: 0px;
@@ -143,23 +137,5 @@
 }
 
 #tab1-content::-webkit-scrollbar {
-    display: none;
-}
-
-#preloader {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 9999;
-    overflow: hidden;
-}
-
-.font-onchange-camera-rec-toggle {
-    font-weight: bold;
-}
-
-.font-scale-fit-button {
-    font-weight: bold;
+    display:none;
 }
