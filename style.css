@@ -1,0 +1,141 @@
+.relative {
+    position: relative;
+}
+
+.absolute {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    margin: 0 calc(50% - 50vw);
+}
+
+.no-gutters {
+    margin-right: 0px;
+    margin-left: 0px;
+}
+
+.no-gutters>.col,
+.no-gutters>[class*="col-"] {
+    padding-right: 0px;
+    padding-left: 0px;
+}
+
+.tab-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 1em;
+}
+
+.tab-wrap:after {
+    content: '';
+    width: 100%;
+    height: 3px;
+    background: #1e7fdd;
+    display: block;
+    order: -1;
+}
+
+.tab-label {
+    color: White;
+    background: LightGray;
+    font-weight: bold;
+    /*text-shadow: 0 -1px 0 rgba(0, 0, 0, .2);*/
+    white-space: nowrap;
+    text-align: center;
+    padding: 10px .5em;
+    order: -1;
+    position: relative;
+    z-index: 1;
+    cursor: pointer;
+    border-radius: 5px 5px 0 0;
+    flex: 1;
+}
+
+.tab-label:not(:last-of-type) {
+    margin-right: 5px;
+}
+
+.tab-content {
+    width: 100%;
+    height: 0;
+    overflow: hidden;
+    opacity: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.tab-switch:checked+.tab-label {
+    background: #1e7fdd;
+}
+
+.tab-switch:checked+.tab-label+.tab-content {
+    height: auto;
+    overflow: auto;
+    padding: 15px;
+    opacity: 1;
+    transition: .5s opacity;
+    box-shadow: 0 0 3px rgba(0, 0, 0, .2);
+}
+
+.tab-switch {
+    display: none;
+}
+
+/* .btn{
+    margin-top: 10px;
+    margin-bottom: 10px;
+    width: 256px;
+} */
+
+.btn-orange {
+    color: #fff;
+    background-color: #ff8319;
+    border: none;
+    padding: 10px 30px;
+}
+
+.btn-orange:hover {
+    color: #fff;
+    background: #b76014;
+}
+
+.btn:active,
+.tab-label:active {
+    position: relative;
+    top: 3px;
+}
+
+.image {
+    max-width: 100%;
+    width: 256px;
+    height: 144px;
+    object-fit: contain;
+}
+
+.input_text {
+    margin-bottom: 10px;
+}
+
+.footer-style {
+    color: #646e73;
+    font-size: 11px;
+    margin-top: auto;
+}
+
+.inc-font {
+    color: #646e73;
+    font-size: 13px;
+}
+
+.hero-background {
+    background-image: url(./assets/画像未設定.png);
+    background-size: cover;
+    background-position: center;
+    /* width:calc(100% + 100px); */
+    margin: 0 calc(50% - 50vw);
+    height: 100vh;
+}
+
+#tab1-content::-webkit-scrollbar {
+    display:none;
+}
