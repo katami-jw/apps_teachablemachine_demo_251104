@@ -170,7 +170,7 @@
 
 #label-container {
     position: absolute;
-    top: 20px;
+    top: 0px;
     left: 20px;
     z-index: 10;
     background-color: rgba(0, 0, 0, 0.6);
@@ -182,6 +182,6 @@
 
 /* もし旧クラスのabsolute2が影響する場合を上書き */
 #label-container.absolute2 {
-    margin: 0;
+    margin: 0 !important;
     left: 20px;
 }
