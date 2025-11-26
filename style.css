@@ -2,18 +2,28 @@
     position: relative;
 }
 
-/*.absolute {
+#webcam-container {
+    display: none !important;
+}
+
+#label-container {
+    position: fixed;
+    top: 80px;
+    left: 20px;
+    z-index: 10;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 10px;
+    border-radius: 8px;
+    width: 300px;
+}
+
+.absolute {
     position: absolute;
     top: 0px;
     left: 0px;
     margin: 0 calc(50% - 50vw);
 }
-
-.absolute2 {
-    position: absolute;
-    left: 0px;
-    margin: 0 calc(50% - 50vw);
-}*/
 
 .no-gutters {
     margin-right: 0px;
@@ -45,7 +55,6 @@
     color: White;
     background: LightGray;
     font-weight: bold;
-    /*text-shadow: 0 -1px 0 rgba(0, 0, 0, .2);*/
     white-space: nowrap;
     text-align: center;
     padding: 10px .5em;
@@ -86,12 +95,6 @@
 .tab-switch {
     display: none;
 }
-
-/* .btn{
-    margin-top: 10px;
-    margin-bottom: 10px;
-    width: 256px;
-} */
 
 .btn-orange {
     color: #fff;
@@ -137,7 +140,6 @@
     background-image: url(./assets/画像未設定.png);
     background-size: cover;
     background-position: center;
-    /* width:calc(100% + 100px); */
     margin: 0 calc(50% - 50vw);
     height: 100vh;
 }
@@ -163,25 +165,3 @@
 .font-scale-fit-button {
     font-weight: bold;
 }
-
-#webcam-container {
-    display: none !important;
-}
-
-#label-container {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    z-index: 10;
-    background-color: rgba(0, 0, 0, 0.6);
-    color: white;
-    padding: 10px;
-    border-radius: 8px;
-    width: 300px;
-}
-
-/* もし旧クラスのabsolute2が影響する場合を上書き 
-#label-container.absolute2 {
-    margin: 0 !important;
-    left: 20px;
-}*/
